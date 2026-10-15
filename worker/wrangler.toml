@@ -1,0 +1,21 @@
+# Glimmer reminder worker. Stores only push endpoints + a reminder time/timezone,
+# and sends one empty "time to journal" push per day. It never sees journal content.
+name = "glimmer-reminder"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+[[kv_namespaces]]
+binding = "SUBS"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+# Checks every 5 minutes who is due (well inside the free plan limits).
+[triggers]
+crons = ["*/5 * * * *"]
+
+[vars]
+# Your app's origin only (no path), e.g. https://yourname.github.io
+ALLOWED_ORIGIN = "https://YOUR-USERNAME.github.io"
+VAPID_SUBJECT = "mailto:you@example.com"
+VAPID_PUBLIC_KEY = "REPLACE_WITH_PUBLIC_KEY_FROM_generate-vapid"
+MAX_SUBSCRIPTIONS = "5"
+# Secret (not in this file): VAPID_PRIVATE_JWK  ->  npx wrangler secret put VAPID_PRIVATE_JWK
