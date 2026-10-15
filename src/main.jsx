@@ -74,6 +74,19 @@ document.addEventListener('visibilitychange', async () => {
   }
 });
 
+// iOS sometimes reports a Home Screen app's window as shorter than the screen, leaving the tab bar
+// floating too high with an empty band below it. Measure the missing height and stretch past it.
+function fitScreen() {
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  const landscape = window.innerWidth > window.innerHeight;
+  const screenH = landscape ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
+  const gap = standalone ? Math.max(0, Math.min(80, screenH - window.innerHeight)) : 0;
+  document.documentElement.style.setProperty('--vh-gap', `${gap}px`);
+}
+fitScreen();
+window.addEventListener('resize', fitScreen);
+window.addEventListener('orientationchange', () => setTimeout(fitScreen, 300));
+
 // Read the lock + onboarding state before the first paint so nothing flashes behind the lock.
 async function boot() {
   await syncSeedPrompts().catch((err) => console.error('Prompt seed failed', err));

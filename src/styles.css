@@ -137,7 +137,7 @@ p {
 .tabbar {
   position: fixed;
   left: 50%;
-  bottom: var(--island-gap);
+  bottom: calc(var(--island-gap) - var(--vh-gap, 0px));
   transform: translateX(-50%);
   z-index: 40;
   width: calc(100% - 32px);
@@ -2429,4 +2429,23 @@ input::placeholder {
   margin-top: 18px;
   opacity: 0.6;
   word-break: break-word;
+}
+
+/* Some iPhones size a Home Screen app's page short of the bottom of the screen (by the height of the
+   status bar area). main.jsx measures that shortfall into --vh-gap; everything stretches past it. */
+html,
+body,
+#root {
+  height: calc(100% + var(--vh-gap, 0px));
+}
+.viewer,
+.sheet-root,
+.streak-overlay,
+.story,
+.lock-screen,
+.onboard {
+  bottom: calc(0px - var(--vh-gap, 0px));
+}
+.confetti {
+  height: calc(100% + var(--vh-gap, 0px));
 }
