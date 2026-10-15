@@ -1,7 +1,7 @@
 // Glimmer service worker: offline cache of the app's own files, plus the daily reminder
 // notification. Journal data lives in IndexedDB; the only thing read here is the prompt list,
 // to pick today's prompt for the notification. Nothing is ever sent anywhere.
-const CACHE = 'glimmer-v2';
+const CACHE = 'glimmer-v3';
 // Bundles load with crossorigin (an Origin header); ignore Vary so they still match offline.
 const MATCH = { ignoreVary: true };
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/apple-touch-icon.png', './icons/icon-192.png'];
@@ -48,25 +48,32 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.endsWith('/asset-list.json')) return;
 
   if (request.mode === 'navigate') {
-    // Serve the cached app instantly; refresh it (and any new bundles) in the background.
+    // Network first, so she always gets the latest version when online. `no-store` skips the
+    // host's 10-minute HTTP cache. Offline or slow (3s): fall back to the saved copy.
     event.respondWith(
       (async () => {
         const cache = await caches.open(CACHE);
-        const cached = await cache.match('./index.html', MATCH);
-        const network = fetch(request)
-          .then(async (res) => {
-            if (res.ok) {
-              await cache.put('./index.html', res.clone());
-              await cacheAssets(cache);
-            }
-            return res;
-          })
-          .catch(() => null);
-        if (cached) {
-          event.waitUntil(network);
-          return cached;
+        const network = fetch(request.url, { cache: 'no-store', credentials: 'same-origin' }).then(async (res) => {
+          if (res.ok) {
+            await cache.put('./index.html', res.clone());
+            event.waitUntil(cacheAssets(cache));
+          }
+          return res;
+        });
+        const timeout = new Promise((resolve) => setTimeout(resolve, 3000, null));
+        try {
+          const res = await Promise.race([network, timeout]);
+          if (res && res.ok) return res;
+        } catch {
+          /* offline */
         }
-        return (await network) || new Response('Offline', { status: 503 });
+        const cached = await cache.match('./index.html', MATCH);
+        if (cached) return cached;
+        try {
+          return await network;
+        } catch {
+          return new Response('Offline', { status: 503 });
+        }
       })(),
     );
     return;
