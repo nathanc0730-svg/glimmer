@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../lib/db.js';
+import { entryDates } from '../lib/db.js';
 import { WEEKDAY_SHORT, todayKey, weekKeys } from '../lib/dates.js';
 import { KIND_LINES, computeStreaks } from '../lib/streak.js';
 import { CheckIcon } from './Icons.jsx';
@@ -56,7 +56,7 @@ function Confetti() {
 
 /** Gentle celebration after saving. No guilt, no "you lost it" — just a warm nudge. */
 export default function StreakCard({ onContinue }) {
-  const dates = useLiveQuery(() => db.entries.orderBy('date').uniqueKeys(), [], null);
+  const dates = useLiveQuery(entryDates, [], null);
   const kind = useMemo(() => KIND_LINES[Math.floor(Math.random() * KIND_LINES.length)], []);
   if (!dates) return null;
   const { current } = computeStreaks(dates);

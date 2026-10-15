@@ -14,7 +14,7 @@ import LockScreen from './components/LockScreen.jsx';
 import { InstallGuide, Welcome } from './components/Onboarding.jsx';
 import { hasPasscode } from './lib/passcode.js';
 import { isStandalone, shouldInstall } from './lib/platform.js';
-import { db, getSetting, setSetting } from './lib/db.js';
+import { db, entriesOn, getSetting, setSetting } from './lib/db.js';
 import { loadRecap, recapId } from './lib/recap.js';
 import { HomeIcon, InsightsIcon, MemoriesIcon, PlusIcon, SettingsIcon } from './components/Icons.jsx';
 
@@ -100,7 +100,7 @@ export default function App({ boot }) {
   const onSaved = async (entry, isNew) => {
     setEditor(null);
     if (!isNew) return;
-    const [dayRow, count] = await Promise.all([db.days.get(entry.date), db.entries.where('date').equals(entry.date).count()]);
+    const [dayRow, count] = await Promise.all([db.days.get(entry.date), entriesOn(entry.date).then((list) => list.length)]);
     if (!dayRow && count === 1) setMood({ date: entry.date, thenCelebrate: true });
     else setCelebrate(true);
   };

@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import Sheet from './Sheet.jsx';
 import EntryCard from './EntryCard.jsx';
 import { CloseIcon, PenIcon } from './Icons.jsx';
-import { db } from '../lib/db.js';
+import { db, entriesOn } from '../lib/db.js';
 import { formatLong, relativeLabel } from '../lib/dates.js';
 import { moodById } from '../data/moods.js';
 
@@ -17,7 +17,7 @@ export default function DaySheet({ request, onClose, onOpenEntry, onWrite, onMoo
 
 function DayBody({ date, onlyIds, onClose, onOpenEntry, onWrite, onMood }) {
   const entries = useLiveQuery(
-    () => db.entries.where('date').equals(date).sortBy('createdAt'),
+    () => entriesOn(date),
     [date],
     null,
   );

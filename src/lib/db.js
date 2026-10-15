@@ -19,7 +19,7 @@ export const uid = () =>
 // Adds any built-in prompts the database doesn't have yet (first run, or new prompts in an app update)
 // without touching her favorites or custom prompts.
 export async function syncSeedPrompts() {
-  const existing = new Set(await db.prompts.toCollection().primaryKeys());
+  const existing = new Set((await db.prompts.toArray()).map((p) => p.id));
   const missing = SEED_PROMPTS.filter((p) => !existing.has(p.id));
   if (missing.length) await db.prompts.bulkAdd(missing);
 }
@@ -50,6 +50,31 @@ export async function deleteEntry(id) {
     await db.media.bulkDelete(entry.mediaIds ?? []);
     await db.entries.delete(id);
   });
+}
+
+// Reads below always load the whole table and sort in JavaScript. Some iPhones fail sorted or
+// ranged index reads ("UnknownError: Unable to open cursor") while plain whole-table reads work,
+// and a journal is small enough that this costs nothing noticeable.
+const byDate = (a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : (a.createdAt ?? 0) - (b.createdAt ?? 0));
+
+/** Sorted, unique dates that have at least one entry. */
+export async function entryDates() {
+  return [...new Set((await db.entries.toArray()).map((e) => e.date))].sort();
+}
+
+/** The newest entries first. */
+export async function recentEntries(limit) {
+  return (await db.entries.toArray()).sort(byDate).reverse().slice(0, limit);
+}
+
+/** Entries written on one day, oldest first. */
+export async function entriesOn(date) {
+  return (await db.entries.toArray()).filter((e) => e.date === date).sort(byDate);
+}
+
+/** Rows whose date falls in [start, end], from a table keyed or indexed by date. */
+export async function rowsBetween(table, start, end) {
+  return (await table.toArray()).filter((r) => r.date >= start && r.date <= end);
 }
 
 export const entryHasContent = (e) =>

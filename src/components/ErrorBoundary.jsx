@@ -1,4 +1,29 @@
-import { Component } from 'react';
+import { Component, useEffect, useState } from 'react';
+import { db } from '../lib/db.js';
+
+/** Reads each table once and reports what works, so a screenshot of this screen says where it broke. */
+function Diagnostics() {
+  const [rows, setRows] = useState([]);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const out = [];
+      for (const table of db.tables) {
+        try {
+          const n = (await table.toArray()).length;
+          out.push(`${table.name}: ${n} ok`);
+        } catch (err) {
+          out.push(`${table.name}: ${err?.name || 'Error'}`);
+        }
+        if (alive) setRows([...out]);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return rows.length ? <p className="muted small center error-detail">{rows.join(' · ')}</p> : null;
+}
 
 // iOS sometimes drops a Home Screen app's IndexedDB connection while it sits in the background.
 // Every query then fails until the page reloads. A reload reconnects, and the journal is untouched.
@@ -58,6 +83,7 @@ export default class ErrorBoundary extends Component {
             Reload Glimmer
           </button>
           <p className="muted small center error-detail">{String(error?.message || error)}</p>
+          <Diagnostics />
         </div>
       </div>
     );

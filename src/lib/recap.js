@@ -1,6 +1,6 @@
 import { addDays, addMonths, formatMonth, hashKey, monthOf, parseKey, todayKey, weekKeys } from './dates.js';
 import { topWords } from './words.js';
-import { db } from './db.js';
+import { db, entryDates, rowsBetween } from './db.js';
 import { moodById } from '../data/moods.js';
 
 // Recaps are computed on demand from local data; nothing is stored or sent.
@@ -139,9 +139,9 @@ export function buildRecap(range, allEntries, moodMap, allDates) {
 /** Reads just what a recap needs from IndexedDB and builds it. */
 export async function loadRecap(range) {
   const [entries, days, dates] = await Promise.all([
-    db.entries.where('date').between(range.start, range.end, true, true).toArray(),
-    db.days.where('date').between(range.start, range.end, true, true).toArray(),
-    db.entries.orderBy('date').uniqueKeys(),
+    rowsBetween(db.entries, range.start, range.end),
+    rowsBetween(db.days, range.start, range.end),
+    entryDates(),
   ]);
   return buildRecap(range, entries, new Map(days.map((d) => [d.date, d.mood])), dates);
 }

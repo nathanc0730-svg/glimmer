@@ -1,4 +1,4 @@
-import { db, getSetting } from './db.js';
+import { db, entryDates, getSetting } from './db.js';
 import { addDays, todayKey } from './dates.js';
 
 // Backups are a plain .zip: journal.json (entries, moods, custom prompts, a few preferences)
@@ -47,13 +47,13 @@ export async function buildBackup(onProgress) {
     file.push(data, true);
   };
 
-  const [entries, days, prompts, settings, mediaIds] = await Promise.all([
+  const [entries, days, prompts, settings] = await Promise.all([
     db.entries.toArray(),
     db.days.toArray(),
     db.prompts.toArray(),
     db.settings.toArray(),
-    db.media.toCollection().primaryKeys(),
   ]);
+  const mediaIds = [...new Set(entries.flatMap((e) => e.mediaIds ?? []))];
 
   // Media one at a time (already compressed, so stored as-is) to keep memory steady.
   const media = [];
@@ -133,7 +133,7 @@ export async function backupDue() {
   const [last, snooze, first] = await Promise.all([
     getSetting('lastBackupAt', null),
     getSetting('backupSnoozeUntil', null),
-    db.entries.orderBy('date').first(),
+    entryDates().then((dates) => (dates.length ? { date: dates[0] } : null)),
   ]);
   if (!first) return false;
   const today = todayKey();

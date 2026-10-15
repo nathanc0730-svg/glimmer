@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import EntryCard from '../components/EntryCard.jsx';
 import { BookmarkIcon, CheckIcon, ChevronRight, SparkleIcon } from '../components/Icons.jsx';
-import { db, getSetting, setSetting, useSetting } from '../lib/db.js';
+import { db, entryDates, getSetting, recentEntries, setSetting, useSetting } from '../lib/db.js';
 import { dailyAffirmationIndex, dailyPrompt } from '../lib/daily.js';
 import { addDays, formatHeader, formatLong, greeting, relativeLabel, todayKey } from '../lib/dates.js';
 import { computeStreaks } from '../lib/streak.js';
@@ -25,8 +25,8 @@ export function StreakPill({ dates }) {
 export default function Home({ onWrite, onPick, onOpenEntry, onMood, onOpenRecap, onGoSettings, onShowInstall }) {
   const today = todayKey();
   const prompts = useLiveQuery(() => db.prompts.toArray(), [], []);
-  const dates = useLiveQuery(() => db.entries.orderBy('date').uniqueKeys(), [], []);
-  const recent = useLiveQuery(() => db.entries.orderBy('date').reverse().limit(60).toArray(), [], null);
+  const dates = useLiveQuery(entryDates, [], []);
+  const recent = useLiveQuery(() => recentEntries(60), [], null);
   const dayRows = useLiveQuery(() => db.days.toArray(), [], []);
   const [dailyOn] = useSetting('dailyPrompt', true);
   const [saved, setSaved] = useSetting('savedAffirmations', []);
