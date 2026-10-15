@@ -2393,3 +2393,40 @@ input::placeholder {
   font-size: 15px;
   line-height: 1.4;
 }
+
+/* Shown if something fails outside of drawing, so it never fails silently */
+.fatal-banner {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  top: calc(var(--safe-top, 0px) + 10px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #3a2230;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.35;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+.fatal-banner span {
+  flex: 1;
+}
+.fatal-banner button {
+  flex: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: #fff;
+  color: #3a2230;
+  font: inherit;
+  font-weight: 600;
+}
+.error-detail {
+  margin-top: 18px;
+  opacity: 0.6;
+  word-break: break-word;
+}

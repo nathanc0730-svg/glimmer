@@ -1,7 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
-import { getSetting, syncSeedPrompts } from './lib/db.js';
+import ErrorBoundary, { isLostDatabase, recoverByReload } from './components/ErrorBoundary.jsx';
+import { db, getSetting, syncSeedPrompts } from './lib/db.js';
 import './styles.css';
 
 // Ask iOS to treat this storage as persistent so the journal isn't evicted.
@@ -41,6 +42,38 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 }
 
+// Errors outside of drawing (a tap handler, a background save). A lost database connection is fixed
+// by reloading; anything else is shown on screen so it can be reported, instead of failing silently.
+function showFatal(err) {
+  if (isLostDatabase(err) && recoverByReload()) return;
+  if (document.getElementById('fatal')) return;
+  const box = document.createElement('div');
+  box.id = 'fatal';
+  box.className = 'fatal-banner';
+  box.innerHTML = '<span></span><button type="button">Reload</button>';
+  box.querySelector('span').textContent = `Something went wrong: ${String(err?.message || err).slice(0, 160)}`;
+  box.querySelector('button').onclick = () => window.location.reload();
+  document.body.appendChild(box);
+}
+window.addEventListener('error', (e) => showFatal(e.error || e.message));
+window.addEventListener('unhandledrejection', (e) => showFatal(e.reason));
+
+// iOS can close the database while the app sits in the background. When she comes back, make sure
+// it still answers; if not, reload so it reconnects (her entries are untouched).
+db.on('close', () => {
+  if (document.visibilityState === 'visible') recoverByReload();
+});
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState !== 'visible') return;
+  const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Database not responding')), 4000));
+  try {
+    await Promise.race([db.settings.get('onboarded'), timeout]);
+  } catch (err) {
+    console.error(err);
+    recoverByReload();
+  }
+});
+
 // Read the lock + onboarding state before the first paint so nothing flashes behind the lock.
 async function boot() {
   await syncSeedPrompts().catch((err) => console.error('Prompt seed failed', err));
@@ -54,7 +87,9 @@ async function boot() {
 boot().then((state) => {
   createRoot(document.getElementById('root')).render(
     <StrictMode>
-      <App boot={state} />
+      <ErrorBoundary>
+        <App boot={state} />
+      </ErrorBoundary>
     </StrictMode>,
   );
 });
