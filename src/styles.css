@@ -137,7 +137,7 @@ p {
 .tabbar {
   position: fixed;
   left: 50%;
-  bottom: calc(var(--island-gap) - var(--vh-gap, 0px));
+  bottom: var(--island-gap);
   transform: translateX(-50%);
   z-index: 40;
   width: calc(100% - 32px);
@@ -2431,21 +2431,9 @@ input::placeholder {
   word-break: break-word;
 }
 
-/* Some iPhones size a Home Screen app's page short of the bottom of the screen (by the height of the
-   status bar area). main.jsx measures that shortfall into --vh-gap; everything stretches past it. */
-html,
-body,
-#root {
-  height: calc(100% + var(--vh-gap, 0px));
-}
-.viewer,
-.sheet-root,
-.streak-overlay,
-.story,
-.lock-screen,
-.onboard {
-  bottom: calc(0px - var(--vh-gap, 0px));
-}
-.confetti {
-  height: calc(100% + var(--vh-gap, 0px));
+/* Some iPhones give a Home Screen app a window that stops above the home indicator. Nothing can be
+   drawn below it, so there's no home indicator to clear: sit the bar just above the window's edge. */
+html.short-window {
+  --safe-bottom: 0px;
+  --island-gap: 12px;
 }
