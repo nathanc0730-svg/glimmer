@@ -5,7 +5,11 @@ import { getSetting, syncSeedPrompts } from './lib/db.js';
 import './styles.css';
 
 // Ask iOS to treat this storage as persistent so the journal isn't evicted.
-navigator.storage?.persist?.().catch(() => {});
+try {
+  navigator.storage?.persist?.().catch(() => {});
+} catch {
+  /* not supported */
+}
 
 // Home Screen apps on iPhone usually resume rather than relaunch, so check for a new version
 // whenever she comes back, and refresh quietly unless she's in the middle of something.

@@ -58,10 +58,15 @@ export function InstallGuide({ onClose, closeLabel = 'Continue in Safari for now
 
 /** First launch from the Home Screen. */
 export function Welcome({ onDone }) {
-  const start = async () => {
-    // Ask iOS to keep this storage (it's granted automatically for Home Screen apps on most versions).
-    await navigator.storage?.persist?.().catch(() => {});
+  const start = () => {
+    // Close right away; ask iOS to keep this storage in the background. Some iOS versions never
+    // answer persist(), so nothing may wait on it.
     onDone();
+    try {
+      navigator.storage?.persist?.().catch(() => {});
+    } catch {
+      /* not supported */
+    }
   };
   return createPortal(
     <div className="onboard welcome" role="dialog" aria-modal="true" aria-label="Welcome">
