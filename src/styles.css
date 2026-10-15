@@ -2432,8 +2432,8 @@ input::placeholder {
 }
 
 /* Some iPhones give a Home Screen app a window that stops above the home indicator. Nothing can be
-   drawn below it, so there's no home indicator to clear: sit the bar just above the window's edge. */
+   drawn below it, so there's no home indicator to clear: sit the bar right on the window's edge. */
 html.short-window {
   --safe-bottom: 0px;
-  --island-gap: 12px;
+  --island-gap: 2px;
 }
