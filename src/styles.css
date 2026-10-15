@@ -2378,3 +2378,11 @@ input::placeholder {
   font-size: 22px;
   line-height: 1.2;
 }
+.reminder-steps {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+  font-size: 15px;
+  line-height: 1.4;
+}

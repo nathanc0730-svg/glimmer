@@ -3,28 +3,46 @@ import Toggle from '../components/Toggle.jsx';
 import PasscodeSheet from '../components/PasscodeSheet.jsx';
 import { BookmarkIcon, ChevronRight } from '../components/Icons.jsx';
 import { useSetting, setSetting } from '../lib/db.js';
-import { TIMEZONES, defaultTimezone, disableReminder, enableReminder, pushSupport, updateReminder } from '../lib/push.js';
+import {
+  TIMEZONES,
+  defaultTimezone,
+  disableReminder,
+  enableReminder,
+  pushConfigured,
+  pushSupport,
+  updateReminder,
+} from '../lib/push.js';
 import { buildBackup, formatBytes, readBackup, restoreBackup, storageInfo } from '../lib/backup.js';
 import { shareFile } from '../lib/share.js';
 import { AFFIRMATIONS } from '../data/affirmations.js';
 
 const REMINDER_DEFAULT = { on: false, time: '20:30', timezone: defaultTimezone() };
 
-function ShortcutSteps() {
+/** No push server: a repeating reminder in the iPhone Reminders app does the job. */
+function RemindersAppCard() {
   return (
-    <details className="shortcut-steps">
-      <summary>Use an iPhone Shortcut instead</summary>
-      <ol>
-        <li>Open the <b>Shortcuts</b> app → <b>Automation</b> → <b>+</b>.</li>
-        <li>Choose <b>Time of Day</b>, pick your time, set <b>Repeat: Daily</b>, then <b>Run Immediately</b>.</li>
-        <li>Add the action <b>Show Notification</b> with the text “Time to journal ✨”.</li>
-        <li>Tap <b>Done</b>. When it buzzes, open Glimmer from your Home Screen.</li>
+    <section className="card settings-card">
+      <div className="setting-row">
+        <div>
+          <div className="setting-title">Daily reminder</div>
+          <div className="muted small">Set it once in your iPhone’s Reminders app</div>
+        </div>
+      </div>
+      <ol className="reminder-steps">
+        <li>
+          Open <b>Reminders</b> and add a new reminder: <i>Journal in Glimmer ✨</i>
+        </li>
+        <li>
+          Tap <b>ⓘ</b>, turn on <b>Date</b> and <b>Time</b>, and pick your time
+        </li>
+        <li>
+          Tap <b>Repeat</b> → <b>Daily</b> → <b>Done</b>
+        </li>
       </ol>
-      <p className="muted small">
-        Tip: open Glimmer from its Home Screen icon, not from a Safari link. Your journal lives inside the Home
-        Screen app.
+      <p className="muted small setting-note">
+        When it pops up, open Glimmer from its Home Screen icon. Your journal lives inside the Home Screen app.
       </p>
-    </details>
+    </section>
   );
 }
 
@@ -50,7 +68,6 @@ function ReminderCard() {
   };
 
   const notes = {
-    'not-configured': 'The reminder service hasn’t been set up yet, so push notifications are off for now.',
     'not-installed': 'Open Glimmer from your Home Screen to turn on reminders.',
     denied: 'Notifications are turned off for Glimmer. You can allow them in iPhone Settings → Notifications → Glimmer.',
     unsupported: 'This iPhone needs iOS 16.4 or newer for reminders.',
@@ -93,7 +110,6 @@ function ReminderCard() {
       {busy && <p className="muted small">Saving…</p>}
       {error && <p className="error-text small">{error}</p>}
       {!support.ok && <p className="muted small setting-note">{notes[support.reason]}</p>}
-      <ShortcutSteps />
     </section>
   );
 }
@@ -231,14 +247,14 @@ export default function Settings({ onShowInstall }) {
       </header>
 
       <h2 className="settings-label">Reminder</h2>
-      <ReminderCard />
+      {pushConfigured() ? <ReminderCard /> : <RemindersAppCard />}
 
       <h2 className="settings-label">Prompts</h2>
       <section className="card settings-card">
         <div className="setting-row">
           <div>
             <div className="setting-title">Suggest a new prompt every day</div>
-            <div className="muted small">Shown on Home and in your reminder</div>
+            <div className="muted small">A fresh prompt on Home each day</div>
           </div>
           <Toggle checked={dailyOn} onChange={setDailyOn} label="Suggest a new prompt every day" />
         </div>

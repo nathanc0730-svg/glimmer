@@ -28,10 +28,13 @@ git push -u origin main
 2. Open the **Actions** tab. The "Deploy to GitHub Pages" run takes about a minute.
 3. Your app is live at **`https://YOUR-USERNAME.github.io/glimmer/`**.
 
-The app works fully at this point, offline included. Without step 3 the reminder screen shows the
-iPhone Shortcuts option instead of push notifications.
+The app works fully at this point, offline included. Without step 3, Settings shows how to set a
+daily reminder in the iPhone Reminders app instead of push notifications.
 
-## 3. Daily reminder service (optional, recommended)
+**Current setup:** live at <https://nathanc0730-svg.github.io/glimmer/>, deployed from
+`nathanc0730-svg/glimmer`. Step 3 (push reminders) was skipped in favor of the Reminders app.
+
+## 3. Daily reminder service (optional)
 
 iPhone web apps can receive notifications (iOS 16.4+), but something has to send them on a schedule.
 The `worker/` folder is a tiny free Cloudflare Worker that does only this.
@@ -93,14 +96,15 @@ You'll see one key per subscribed phone, and nothing else.
 3. Close Safari and open **Glimmer from the Home Screen icon**. Always use the icon. The journal
    lives inside the Home Screen app, separate from Safari.
 4. Tap **Let's begin** on the welcome screen.
-5. **Settings → Daily reminder**: turn it on, tap **Allow** when iOS asks, and pick a time.
+5. Daily reminder: in the **Reminders** app, add "Journal in Glimmer ✨" → ⓘ → Date + Time →
+   **Repeat: Daily**. (If you set up step 3, use **Settings → Daily reminder** in Glimmer instead.)
 6. Optional: **Settings → Passcode lock**.
 7. Optional but wise: **Settings → Export backup → Save backup → Save to Files → iCloud Drive**.
    Glimmer gently reminds her if two weeks pass without a backup.
 
-### Reminder fallback: iPhone Shortcuts
+### Other reminder options
 
-If you skip step 3, she can still get a daily nudge:
+Besides the Reminders app, an iPhone Shortcuts automation also works:
 
 1. **Shortcuts** app → **Automation** → **+**
 2. **Time of Day** → choose the time → **Daily** → **Run Immediately** → **Next**
